@@ -31,3 +31,10 @@ class Note(NoteBase):
         orm_mode = True
         from_attributes = True
 
+
+class NoteUpdate(BaseModel):
+    title: Optional[str] = None
+    content: Optional[str] = None
+
+    class Config:
+        orm_mode = True
