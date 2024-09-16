@@ -69,3 +69,12 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession
     if user is None:
         raise credentials_exception
     return user
+
+
+@router.get("/check_user/{telegram_id}", response_model=bool)
+async def check_user(telegram_id: str, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(models.User).filter(models.User.telegram_id == telegram_id))
+    user = result.scalar()
+
+    # Возвращаем True если пользователь существует, иначе False
+    return bool(user)
