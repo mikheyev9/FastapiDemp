@@ -73,7 +73,6 @@ coverage.xml
 *.seed
 *.pid.lock
 *.env
-Dockerfile
 docker-compose.yml
 __pycache__/
 *.py[cod]
