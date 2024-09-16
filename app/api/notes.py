@@ -1,13 +1,12 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.orm import joinedload
 from sqlalchemy.orm import selectinload
 
 from app.db import models
 from app.schemas import note as schemas
 from app.db.session import get_db
-from app.api.auth import get_current_user  # Импортируем get_current_user
+from app.api.auth import get_current_user
 from typing import List
 
 router = APIRouter()
@@ -46,7 +45,6 @@ async def create_note(note: schemas.NoteCreate,
     await db.commit()
     await db.refresh(db_note)
 
-    # Ручная подгрузка тегов после коммита
     await db.execute(select(models.Note).options(selectinload(models.Note.tags)).filter(models.Note.id == db_note.id))
 
     return db_note
@@ -56,9 +54,8 @@ async def create_note(note: schemas.NoteCreate,
 async def get_note_by_id(note_id: int,
                          db: AsyncSession = Depends(get_db),
                          current_user: models.User = Depends(get_current_user)):
-    # Ищем заметку по ID и проверяем, что она принадлежит текущему пользователю
     result = await db.execute(select(models.Note).filter(models.Note.id == note_id,
-                                                         models.Note.user_id == current_user.id).options(selectinload(models.Note.tags)))
+                models.Note.user_id == current_user.id).options(selectinload(models.Note.tags)))
     db_note = result.scalar()
 
     if not db_note:
@@ -71,21 +68,18 @@ async def update_note(note_id: int,
                       note_update: schemas.NoteUpdate,
                       db: AsyncSession = Depends(get_db),
                       current_user: models.User = Depends(get_current_user)):
-    # Ищем заметку по ID
     result = await db.execute(select(models.Note).filter(models.Note.id == note_id,
-                                                         models.Note.user_id == current_user.id).options(selectinload(models.Note.tags)))
+                models.Note.user_id == current_user.id).options(selectinload(models.Note.tags)))
     db_note = result.scalar()
 
     if not db_note:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
 
-    # Обновляем поля, если они предоставлены
     if note_update.title is not None:
         db_note.title = note_update.title
     if note_update.content is not None:
         db_note.content = note_update.content
 
-    # Коммитим изменения
     await db.commit()
     await db.refresh(db_note)
 
@@ -95,7 +89,6 @@ async def update_note(note_id: int,
 async def add_tag_to_note(note_id: int, tag_name: str,
                           db: AsyncSession = Depends(get_db),
                           current_user: models.User = Depends(get_current_user)):
-    # Ищем заметку по ID и подгружаем теги
     result = await db.execute(select(models.Note).filter(
         models.Note.id == note_id,
         models.Note.user_id == current_user.id
@@ -105,7 +98,6 @@ async def add_tag_to_note(note_id: int, tag_name: str,
     if not db_note:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
 
-    # Поиск или создание тега
     tag_result = await db.execute(select(models.Tag).filter(models.Tag.name == tag_name))
     tag = tag_result.scalar()
     if tag:
@@ -118,7 +110,6 @@ async def add_tag_to_note(note_id: int, tag_name: str,
         db.add(new_tag)
         db_note.tags.append(new_tag)
 
-    # Коммитим изменения
     await db.commit()
     await db.refresh(db_note)
 
@@ -130,7 +121,6 @@ async def add_tag_to_note(note_id: int, tag_name: str,
 async def remove_tag_from_note(note_id: int, tag_name: str,
                                db: AsyncSession = Depends(get_db),
                                current_user: models.User = Depends(get_current_user)):
-    # Ищем заметку по ID и подгружаем теги
     result = await db.execute(select(models.Note).filter(
         models.Note.id == note_id,
         models.Note.user_id == current_user.id
@@ -140,7 +130,6 @@ async def remove_tag_from_note(note_id: int, tag_name: str,
     if not db_note:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Note not found")
 
-    # Поиск тега
     tag_result = await db.execute(select(models.Tag).filter(models.Tag.name == tag_name))
     tag = tag_result.scalar()
     if tag and tag in db_note.tags:
@@ -148,7 +137,6 @@ async def remove_tag_from_note(note_id: int, tag_name: str,
     else:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Tag not found on the note")
 
-    # Коммитим изменения
     await db.commit()
     await db.refresh(db_note)
 

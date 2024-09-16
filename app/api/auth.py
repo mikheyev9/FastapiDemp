@@ -32,21 +32,16 @@ async def register(user: schemas.UserCreate, db: AsyncSession = Depends(get_db))
 
 @router.post("/login", response_model=schemas.UserWithToken)
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
-    # Telegram ID берется из username
     telegram_id = form_data.username
 
-    # Ищем пользователя по Telegram ID
     result = await db.execute(select(models.User).filter(models.User.telegram_id == telegram_id))
     db_user = result.scalar()
 
-    # Проверка существования пользователя и пароля
     if not db_user or not verify_password(form_data.password, db_user.hashed_password):
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Incorrect Telegram ID or password")
 
-    # Генерация JWT токена
     access_token = create_access_token({"sub": db_user.telegram_id})
 
-    # Возвращаем токен и данные пользователя
     return {
         "access_token": access_token,
         "token_type": "bearer",
