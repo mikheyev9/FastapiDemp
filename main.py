@@ -5,6 +5,7 @@ from fastapi_limiter.depends import RateLimiter
 from redis.asyncio import Redis
 
 from app.api import auth, notes
+from config import settings
 
 app = FastAPI(dependencies=[Depends(RateLimiter(times=100, seconds=60))])
 
@@ -24,7 +25,7 @@ app.add_middleware(
 
 @app.on_event("startup")
 async def on_startup():
-    redis = Redis(host="localhost", port=6379, decode_responses=True)
+    redis = Redis(host=settings.REDIS_HOST, port=settings.REDIS_PORT, decode_responses=True)
     await FastAPILimiter.init(redis)
 
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

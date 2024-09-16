@@ -18,4 +18,8 @@ class Settings(BaseSettings):
     DB_PORT: int = int(os.getenv("DB_PORT", 5432))  # По умолчанию порт 5432
     DB_NAME: str = os.getenv("DB_NAME")
 
+    # Параметры Redis
+    REDIS_HOST: str = os.getenv("REDIS_HOST", "localhost")
+    REDIS_PORT: int = int(os.getenv("REDIS_PORT", 6379))
+
 settings = Settings()
