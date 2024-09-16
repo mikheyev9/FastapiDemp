@@ -50,6 +50,28 @@ async def create_note(note: schemas.NoteCreate,
     return db_note
 
 
+# Новый маршрут для поиска заметок по нескольким тегам
+@router.get("/notes/search", response_model=list[schemas.Note])
+async def search_notes_by_tags(tags: str,
+                               db: AsyncSession = Depends(get_db),
+                               current_user: models.User = Depends(get_current_user)):
+    # Разделяем теги по пробелам
+    tag_list = tags.split()
+
+    # Ищем заметки, которые содержат хотя бы один из тегов
+    stmt = (select(models.Note)
+            .join(models.Note.tags)
+            .filter(models.Tag.name.in_(tag_list))
+            .filter(models.Note.user_id == current_user.id)
+            .options(selectinload(models.Note.tags))
+            .distinct())
+
+    result = await db.execute(stmt)
+    notes = result.scalars().all()
+
+    return notes
+
+
 @router.get("/notes/{note_id}", response_model=schemas.Note)
 async def get_note_by_id(note_id: int,
                          db: AsyncSession = Depends(get_db),
