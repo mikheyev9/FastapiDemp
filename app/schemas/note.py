@@ -18,8 +18,6 @@ class NoteBase(BaseModel):
 class NoteCreate(NoteBase):
     tags: List[str]
 
-class NoteUpdate(NoteBase):
-    tags: Optional[List[str]] = None
 
 class Note(NoteBase):
     id: int
@@ -28,7 +26,6 @@ class Note(NoteBase):
     tags: List[Tag]
 
     class Config:
-        orm_mode = True
         from_attributes = True
 
 

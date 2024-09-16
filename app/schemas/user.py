@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 
 class UserBase(BaseModel):
     telegram_id: str
@@ -14,7 +14,6 @@ class User(UserBase):
     id: int
 
     class Config:
-        orm_mode = True  # Позволяет использовать from_orm
         from_attributes = True  # Необходимо для поддержки from_orm в Pydantic 2.x
 
 class UserWithToken(BaseModel):
@@ -23,5 +22,4 @@ class UserWithToken(BaseModel):
     user: User
 
     class Config:
-        orm_mode = True
         from_attributes = True
