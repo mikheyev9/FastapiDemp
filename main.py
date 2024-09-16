@@ -1,13 +1,13 @@
-from fastapi import FastAPI
-from app.api import auth, notes
-from app.db.session import engine
-from app.db import models
+from fastapi import FastAPI, Depends
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_limiter import FastAPILimiter
+from fastapi_limiter.depends import RateLimiter
+from redis.asyncio import Redis
 
-# Инициализация приложения
-app = FastAPI()
+from app.api import auth, notes
 
-# Установка CORS, если необходимо (например, для работы с фронтендом)
+app = FastAPI(dependencies=[Depends(RateLimiter(times=100, seconds=60))])
+
 origins = [
     "http://localhost",
     "http://localhost:8000",
@@ -21,12 +21,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Применение миграций при старте (автоматически создает таблицы)
-@app.on_event("startup")
-async def startup():
-    async with engine.begin() as conn:
-        await conn.run_sync(models.Base.metadata.create_all)
 
-# Роуты для авторизации и заметок
+@app.on_event("startup")
+async def on_startup():
+    redis = Redis(host="localhost", port=6379, decode_responses=True)
+    await FastAPILimiter.init(redis)
+
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
 app.include_router(notes.router, prefix="/notes", tags=["notes"])
