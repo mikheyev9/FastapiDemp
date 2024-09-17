@@ -1,9 +1,12 @@
+from datetime import datetime
+
 from sqlalchemy import Column, Integer, String, Text, DateTime, ForeignKey, Table
 from sqlalchemy.orm import relationship
-from datetime import datetime
-from app.db.session import Base
+from sqlalchemy.ext.declarative import declarative_base
 
-# Ассоциативная таблица для связи между заметками и тегами
+
+Base = declarative_base()
+
 note_tag_association = Table(
     'note_tag', Base.metadata,
     Column('note_id', ForeignKey('notes.id'), primary_key=True),

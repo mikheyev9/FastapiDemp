@@ -101,3 +101,4 @@ mediafiles/
 *.local
 test.txt
 postgres_data
+redis_data
