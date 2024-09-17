@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.git
+.gitignore
+.vscode/
+*.log
+.env
+.venv
+postgres_data
+redis_data
+postgres_data_local
+redis_data_local

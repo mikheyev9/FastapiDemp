@@ -29,3 +29,6 @@ gunicorn = "^23.0.0"
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[virtualenvs]
+in-project = false
